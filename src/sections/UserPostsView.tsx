@@ -1,4 +1,3 @@
-// src/sections/PostView.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { Post, User } from "@prisma/client";
@@ -13,7 +12,8 @@ import {
     Button,
     Avatar,
     Divider,
-    Stack
+    Stack,
+    Paper
 } from "@mui/material";
 import { 
     Favorite, 
@@ -21,18 +21,18 @@ import {
     ChatBubbleOutline,
     Send
 } from "@mui/icons-material";
-import { fetchPosts } from "@/app/actions/posts";
+import { fetchPostsByUserId } from "@/app/actions/posts";
 
 // Define a type that includes the user relation
 type PostWithUser = Post & {
     user: User;
 };
 
-interface PostViewProps {
-    post?: PostWithUser;
+interface UserPostsViewProps {
+    userId: string;
 }
 
-const PostView = () => {
+const UserPostsView = ({ userId }: UserPostsViewProps) => {
     const [posts, setPosts] = useState<PostWithUser[]>([]);
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
     const [commentText, setCommentText] = useState<{ [key: string]: string }>({});
@@ -40,14 +40,14 @@ const PostView = () => {
     useEffect(() => {
         const loadPosts = async () => {
             try {
-                const fetchedPosts = await fetchPosts();
+                const fetchedPosts = await fetchPostsByUserId(userId);
                 setPosts(fetchedPosts);
             } catch (error) {
                 console.error("Error fetching posts:", error);
             }
         };
         loadPosts();
-    }, []);
+    }, [userId]);
 
     const handleLike = (postId: string) => {
         setLikedPosts(prev => {
@@ -66,6 +66,23 @@ const PostView = () => {
         console.log(`Comment for post ${postId}:`, commentText[postId]);
         setCommentText(prev => ({ ...prev, [postId]: '' }));
     };
+
+    if (posts.length === 0) {
+        return (
+            <Paper 
+                elevation={3} 
+                sx={{ 
+                    p: 4, 
+                    textAlign: 'center',
+                    borderRadius: 2
+                }}
+            >
+                <Typography variant="h6" color="text.secondary">
+                    Zatiaľ nemáte žiadne príspevky
+                </Typography>
+            </Paper>
+        );
+    }
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, py: 3 }}>
@@ -128,4 +145,5 @@ const PostView = () => {
     );
 }
 
-export default PostView;
+export default UserPostsView;
+ 

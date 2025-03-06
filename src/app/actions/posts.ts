@@ -26,6 +26,7 @@ export const fetchPostsByUserId = async (userId: string) => {
     const posts = await prisma.post.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
+      include: { user: true }, // Include user who created the post
     });
 
     return posts;
