@@ -10,9 +10,17 @@ export const fetchPosts = async () => {
   try {
     const posts = await prisma.post.findMany({
       orderBy: { createdAt: "desc" },
-      include: { user: true }, // Include user who created the post
+      include: { 
+        user: true,
+        images: {
+          orderBy: {
+            order: 'asc'
+          }
+        }
+      },
     });
 
+    console.log('Fetched posts:', JSON.stringify(posts, null, 2));
     return posts;
   } catch (error) {
     console.error("Error fetching posts:", error);
@@ -26,9 +34,17 @@ export const fetchPostsByUserId = async (userId: string) => {
     const posts = await prisma.post.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      include: { user: true }, // Include user who created the post
+      include: { 
+        user: true,
+        images: {
+          orderBy: {
+            order: 'asc'
+          }
+        }
+      },
     });
 
+    console.log('Fetched user posts:', JSON.stringify(posts, null, 2));
     return posts;
   } catch (error) {
     console.error("Error fetching posts by userId:", error);
@@ -37,16 +53,26 @@ export const fetchPostsByUserId = async (userId: string) => {
 };
 
 // Create a new post
-export const createPost = async (userId: string, imageUrl: string, caption?: string) => {
+export const createPost = async (userId: string, caption: string, imageUrls: string[]) => {
   try {
     const newPost = await prisma.post.create({
       data: {
         userId,
-        imageUrl,
         caption,
+        images: {
+          create: imageUrls.map((url, index) => ({
+            imageUrl: url,
+            order: index
+          }))
+        }
       },
+      include: {
+        user: true,
+        images: true
+      }
     });
 
+    console.log('Created new post:', JSON.stringify(newPost, null, 2));
     return newPost;
   } catch (error) {
     console.error("Error creating post:", error);
